@@ -159,16 +159,21 @@
   <ItemGroup>
     <ClCompile Include="base.cpp" />
     <ClCompile Include="CVE-2016-3309.cpp" />
+    <ClCompile Include="CVE-2018-8453.cpp" />
     <ClCompile Include="CVE-2019-1458.cpp" />
+    <ClCompile Include="CVE-2020-1054.cpp" />
     <ClCompile Include="exp_x64.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="base.h" />
     <ClInclude Include="CVE-2016-3309.h" />
+    <ClInclude Include="CVE-2018-8453.h" />
     <ClInclude Include="CVE-2019-1458.h" />
+    <ClInclude Include="CVE-2020-1054.h" />
   </ItemGroup>
   <ItemGroup>
     <MASM Include="ASM-2019-1458.asm" />
+    <MASM Include="ASM-2018-8453.asm" />
     <MASM Include="ShellCode.asm" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

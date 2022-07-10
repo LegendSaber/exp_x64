@@ -33,6 +33,12 @@
     <ClCompile Include="CVE-2019-1458.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
+    <ClCompile Include="CVE-2020-1054.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="CVE-2018-8453.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="base.h">
@@ -44,12 +50,21 @@
     <ClInclude Include="CVE-2019-1458.h">
       <Filter>头文件</Filter>
     </ClInclude>
+    <ClInclude Include="CVE-2020-1054.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="CVE-2018-8453.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <MASM Include="ASM-2019-1458.asm">
       <Filter>源文件</Filter>
     </MASM>
     <MASM Include="ShellCode.asm">
+      <Filter>源文件</Filter>
+    </MASM>
+    <MASM Include="ASM-2018-8453.asm">
       <Filter>源文件</Filter>
     </MASM>
   </ItemGroup>

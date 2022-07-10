@@ -35,6 +35,7 @@ typedef struct _THRDESKHEAD
 
 typedef void*(NTAPI *lHMValidateHandle)(HANDLE h, int type);
 typedef NTSTATUS(WINAPI* lpfnNtQueryIntervalProfile)(IN DWORD Src, IN OUT PDWORD Profile);
+
 EXTERN_C_START
 NTSTATUS ShellCodeInWin7();
 EXTERN_C_END

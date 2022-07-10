@@ -180,7 +180,7 @@ BOOL CallNtQueryIntervalProfile()
 	if (!NtQueryIntervalProfile)
 	{
 		bRet = FALSE;
-		ShowError("MyNtQueryIntervalProfile", GetLastError());
+		ShowError("GetProcAddress", GetLastError());
 		goto exit;
 	}
 
