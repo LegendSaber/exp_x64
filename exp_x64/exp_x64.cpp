@@ -28,7 +28,7 @@ int main()
 		bSucc = Exploit_CVE_2018_8453();
 	}
 
-	if (bSucc)	printf("Exploit %s Success\n", VUL_NAME);
+	if (bSucc) printf("Exploit %s Success\n", VUL_NAME);
 	else printf("Exploit %s Fail\n", VUL_NAME);
 
 	system("whoami");

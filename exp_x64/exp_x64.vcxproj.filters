@@ -67,5 +67,8 @@
     <MASM Include="ASM-2018-8453.asm">
       <Filter>源文件</Filter>
     </MASM>
+    <MASM Include="BaseFunc.asm">
+      <Filter>源文件</Filter>
+    </MASM>
   </ItemGroup>
 </Project>

