@@ -5,7 +5,7 @@
 #include "CVE-2020-1054.h"
 #include "CVE-2018-8453.h"
 
-#define VUL_NAME "CVE-2018-8453"
+#define VUL_NAME "CVE-2020-1054"
 
 int main()
 {

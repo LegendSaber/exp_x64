@@ -14,7 +14,7 @@ BOOL CreateCmd()
 	si.dwFlags = STARTF_USESHOWWINDOW;
 	si.wShowWindow = SW_SHOW;
 
-	BOOL bRet = CreateProcess(NULL, "cmd.exe", NULL, NULL, FALSE, CREATE_NEW_CONSOLE, NULL, NULL, (LPSTARTUPINFOW)& si, &pi);
+	BOOL bRet = CreateProcess(NULL, "cmd.exe", NULL, NULL, FALSE, CREATE_NEW_CONSOLE, NULL, NULL, &si, &pi);
 	if (bRet)
 	{
 		CloseHandle(pi.hThread);
