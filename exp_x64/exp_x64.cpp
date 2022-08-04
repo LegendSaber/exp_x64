@@ -4,8 +4,9 @@
 #include "CVE-2019-1458.h"
 #include "CVE-2020-1054.h"
 #include "CVE-2018-8453.h"
+#include "CVE-2021-1732.h"
 
-#define VUL_NAME "CVE-2018-8453"
+#define VUL_NAME "CVE-2021-1732"
 
 int main()
 {
@@ -27,6 +28,10 @@ int main()
 	{
 		bSucc = Exploit_CVE_2018_8453();
 	}
+	else if (strcmp(VUL_NAME, "CVE-2021-1732") == 0)
+	{
+		bSucc = Exploit_CVE_2021_1732();
+	}
 
 	if (bSucc) printf("Exploit %s Success\n", VUL_NAME);
 	else printf("Exploit %s Fail\n", VUL_NAME);
@@ -36,4 +41,3 @@ int main()
 
     return 0;
 }
-
