@@ -9,6 +9,7 @@
 #define POOL_HEADER_SIZE 0x10
 
 typedef DWORD64 QWORD;
+typedef PDWORD64 PQWORD;
 
 typedef struct _LARGE_UNICODE_STRING {
 	ULONG Length;
@@ -37,10 +38,10 @@ typedef struct _THRDESKHEAD
 }THRDESKHEAD, *PTHRDESKHEAD;
 
 typedef PVOID (NTAPI *lHMValidateHandle)(HWND hWnd, int type);
-typedef NTSTATUS(WINAPI* lpfnNtQueryIntervalProfile)(IN DWORD Src, IN OUT PDWORD Profile);
-typedef NTSTATUS(__fastcall *lpfnxxxClientAllocWindowClassExtraBytes)(PVOID arg0);
-typedef NTSTATUS(__fastcall *lpfnNtUserConsoleControl)(LONG64 nIndex, PVOID pInfo, ULONG64 nInLength);
-typedef NTSTATUS(__fastcall *lpfnNtCallbackReturn)(PVOID Result, ULONG ResultLength, NTSTATUS status);
+typedef NTSTATUS (WINAPI* lpfnNtQueryIntervalProfile)(IN DWORD Src, IN OUT PDWORD Profile);
+typedef NTSTATUS (__fastcall *lpfnxxxClientAllocWindowClassExtraBytes)(PVOID arg0);
+typedef NTSTATUS (__fastcall *lpfnNtUserConsoleControl)(LONG64 nIndex, PVOID pInfo, ULONG64 nInLength);
+typedef NTSTATUS (__fastcall *lpfnNtCallbackReturn)(PVOID Result, ULONG ResultLength, NTSTATUS status);
 
 EXTERN_C_START
 ULONG64 GetPEB();
