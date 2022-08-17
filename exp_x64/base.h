@@ -55,7 +55,6 @@ VOID ShowError(char *str, DWORD dwErrorCode);				// 打印错误信息
 BOOL CreateCmd();											// 创建CMD窗口
 ULONG64 GetNTBase();										// 获取ntos基址
 ULONG64 GetSystemProcess();									// 获取System进程EPROCESS
-QWORD GetKeFlushCurrentTbImmediately();
 BOOL CreateClipboard(DWORD dwSize);							// 通过剪切板实现垫片操作,dwSize + 0x14 + 0x10的内存块
 PVOID GetHMValidateHandle();								// 获取HMValidateHandle函数地址
 PVOID GetHalQuerySystemInformation();						// 获取HalQuerySystemInformation函数地址
