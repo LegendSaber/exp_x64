@@ -42,6 +42,9 @@
     <ClCompile Include="CVE-2021-1732.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
+    <ClCompile Include="CVE-2022-21882.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="base.h">
@@ -60,6 +63,9 @@
       <Filter>头文件</Filter>
     </ClInclude>
     <ClInclude Include="CVE-2021-1732.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="CVE-2022-21882.h">
       <Filter>头文件</Filter>
     </ClInclude>
   </ItemGroup>
