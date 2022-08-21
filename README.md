@@ -5,3 +5,4 @@
 ### CVE-2020-1054的说明在：https://bbs.pediy.com/thread-273701.htm
 ### CVE-2018-8453的说明在：https://bbs.pediy.com/thread-273837.htm
 ### CVE-2021-1732的说明在：https://bbs.pediy.com/thread-274015.htm
+### CVE-2022-21882的说明在：https://bbs.pediy.com/thread-274113.htm
